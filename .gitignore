@@ -27,7 +27,7 @@ hs_err_pid*
 *.ipr
 
 */build
-
+build
 .gradle
 
 */node_modules

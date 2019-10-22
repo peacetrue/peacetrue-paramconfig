@@ -1,5 +1,5 @@
-name: peacetrue-template-model-library
-title: 模型类库模板
+name: peacetrue-param-config
+title: 参数配置
 version: master
 start_page: index.adoc
 nav:

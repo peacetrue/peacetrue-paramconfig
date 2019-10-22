@@ -1,18 +1,56 @@
 = 用法
 
-== 打开 github 模板地址
-https://github.com/peacetrue/peacetrue-template-model-library[peacetrue-template-model-library^]
+== 配置快照仓库
 
-== 使用模板
-image::use-template.png[]
+[source%nowrap,maven]
+----
+<repository>
+    <id>sonatype-snapshots</id>
+    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+</repository>
+----
 
-== 修改模块名
-使用模板生成资源库后检出到本地修改模块名。
-所有涉及到``Demo``的地方，都需要改成自己模块的名称。
+参数配置组件相关jar包都已上传至'sonatype'的快照仓库中了，最新版本是'1.0.0-SNAPSHOT'。
 
-没有**maven-archetype**用着方便，不用改模块名，自动生成时就已经改了。
+== 使用服务
+
+.引用服务接口
+[source%nowrap,maven]
+----
+<dependency>
+  <groupId>com.github.peacetrue.paramconfig</groupId>
+  <artifactId>peacetrue-paramconfig-service-api</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+</dependency>
+----
+
+.引用服务实现
+[source%nowrap,maven]
+----
+<dependency>
+  <groupId>com.github.peacetrue.paramconfig</groupId>
+  <artifactId>peacetrue-paramconfig-service-mybatis</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+</dependency>
+----
+
+== 使用接口
+
+.引用服务控制层
+[source%nowrap,maven]
+----
+<dependency>
+  <groupId>com.github.peacetrue.paramconfig</groupId>
+  <artifactId>peacetrue-paramconfig-controller</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+</dependency>
+----
+
+== 使用前端
+
+``npm install peacetrue-paramconfig-ui``
 
 == 运行样章
 
-* 运行``peacetrue-demo-sample/src/main/java/com/github/peacetrue/demo/DemoApplication.java``启动服务
-* 运行``cd peacetrue-demo-ui && npm start``查看页面效果
+* 运行``peacetrue-paramconfig-sample/src/main/java/com/github/peacetrue/paramconfig/ParamConfigApplication.java``启动服务
+* 运行``cd peacetrue-paramconfig-ui && npm start``查看页面效果

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="../node_modules/iview/dist/styles/iview.css"/>
+    <script src="../node_modules/iview/dist/iview.js"></script>
+    <script src="../node_modules/lodash/lodash.js"></script>
+    <script src="../node_modules/axios/dist/axios.js"></script>
+    <script src="../node_modules/peacetrue-iview/dist/components/page-table/index.js"></script>
+    <script src="../node_modules/peacetrue-iview/dist/mixins/promise-confirm.js"></script>
+    <script src="../node_modules/peacetrue-js/dist/peace.js"></script>
+    <script src="../node_modules/peacetrue-async-validator/dist/peace.async-validator.js"></script>
+    <script src="../node_modules/qs/dist/qs.js"></script>
+    <style>
+        .operation-bar {
+            margin: 10px;
+        }
+
+        input.readonly, .readonly input {
+            border: none;
+        }
+
+        .hidden, input.hidden, .hidden input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <Row class="operation-bar">
+        <i-Col span="24">
+            <i-Button type="primary" size="small" @click="openAdd()">新增</i-Button>
+        </i-Col>
+    </Row>
+    <Card>
+        <div slot="title">查询结果</div>
+        <page-table ref="pageTable" url="http://localhost:9093/param-configs" :columns="columns" v-model="params" :success-format="successFormat"></page-table>
+    </Card>
+    <Modal v-model="detail.model" :title="detail.title">
+        <i-Form ref="detail" :model="detail.data" :rules="detail.rules" :label-width="100">
+            <Form-Item label="提醒时间" prop="dates">
+                <i-input type="textarea" v-model="detail.data.dates" placeholder="必填、长度1~255、多个之间以英文逗号分隔" :readonly="detail.readonly.dates" :class="detail.style.dates"></i-input>
+            </Form-Item>
+            <Form-Item label="发送对象" prop="mobiles">
+                <i-input type="textarea" v-model="detail.data.mobiles" placeholder="必填、长度1~255、多个之间以英文逗号分隔" :readonly="detail.readonly.mobiles" :class="detail.style.mobiles"></i-input>
+            </Form-Item>
+            <Form-Item label="短信内容" prop="content">
+                <i-input type="textarea" v-model="detail.data.content" placeholder="必填、长度1~255、占位符使用{数值}表示" :readonly="detail.readonly.content" :class="detail.style.content"></i-input>
+            </Form-Item>
+        </i-Form>
+        <div slot="footer" v-show="save">
+            <i-button type="success" size="large" long :loading="detail.loading" @click="save">提交</i-button>
+        </div>
+    </Modal>
+</div>
+<script>
+    //处理参数和数据
+    axios.defaults.paramsSerializer = function (params) {
+        return Qs.stringify(params, {arrayFormat: 'repeat', serializeDate: (d) => d.getTime(), allowDots: true});
+    };
+
+    axios.defaults.transformRequest.unshift(function (data, headers) {
+        return Qs.stringify(data, {arrayFormat: 'repeat', serializeDate: (d) => d.getTime(), allowDots: true});
+    });
+
+    axios.interceptors.response.use(function (result) {
+        let data = result.data || {};
+        if (data.code === 'success') return Promise.resolve(data.data);
+        return Promise.reject(data);
+    });
+
+    let vue = new Vue({
+        el: '#container',
+        data() {
+            Peace.AsyncValidator.setFields({dates: "提醒时间", mobiles: "提醒对象", content: "消息内容",});
+
+            return {
+                params: {code: 'remind', createdTime: {}},
+                columns: [
+                    {type: 'selection', width: 60, align: 'center'},
+                    {title: '消息内容', key: 'content', width: 150, tooltip: true},
+                    {title: '提醒时间', key: 'dates', width: 150, tooltip: true},
+                    {title: '提醒对象', key: 'mobiles', width: 150, tooltip: true},
+                    {title: '添加时间', key: 'createdTime', width: 200, tooltip: true, sortable: 'custom', sortType: 'desc'},
+                    {title: '修改时间', key: 'modifiedTime', width: 200},
+                    {title: '是否启用', key: 'enabled', width: 130, render: this.renderEnableSwitch},
+                    {title: '操作', width: 200, fixed: 'right', render: this.renderOperate},
+                ],
+                detail: {
+                    model: false,
+                    loading: false,
+                    data: {},
+                    readonly: {},
+                    style: {},
+                    rules: Peace.AsyncValidator.Generator.generate({
+                        dates: [{required: true}, {max: 255}],
+                        mobiles: [{required: true}, {max: 255}],
+                        content: [{required: true}, {max: 255}],
+                    }),
+                }
+            };
+        },
+        methods: {
+            successFormat(data) {
+                data.content.forEach(t => {
+                    let value = JSON.parse(t.value);
+                    value.dates = value.dates.join(',');
+                    value.mobiles = value.mobiles.join(',');
+                    _.merge(t, value);
+                });
+                return data;
+            },
+            renderEnableSwitch(h, r) {
+                return h('i-switch', {
+                    props: {value: r.row[r.column.key]}, on: {
+                        'on-change': (value) => {
+                            r.row.enabled = value;
+                            this.setEnable(r.row);
+                        }
+                    }
+                });
+            },
+            setEnable(row) {
+                return this.promiseConfirm(`确认要${row.enabled ? '开启' : '关闭'}提醒时间为${row.dates}的群发消息模板吗？`)
+                    .then(() => {
+                        axios.put(`http://localhost:9093/param-configs?id=${row.id}&value=${encodeURIComponent(this.buildValue(row))}`)
+                            .then(() => this.$refs.pageTable.query(true));
+                    }, () => {
+                        row.enabled = !row.enabled;
+                    });
+            },
+            renderOperate(h, r) {
+                let buttons = [
+                    h('Button', {props: {type: 'primary', size: 'small'}, on: {click: () => this.openModify(r.row)}}, '修改'),
+                ];
+                return h('div', buttons);
+            },
+            save() {},
+            openAdd() {
+                this.detail.model = true;
+                this.detail.title = '添加群发短信模版';
+                this.detail.data = {code: `remind.${Math.random().toString().substring(2)}`, name: '提醒模板', enabled: true};
+                this.detail.readonly = {code: false, name: false, value: false, remark: false, creatorId: true, createdTime: true};
+                this.detail.style = {code: null, name: null, value: null, remark: null, creatorId: 'hidden', createdTime: 'hidden'};
+                this.$refs.detail.resetFields();
+                this.save = this.add;
+            },
+            add() {
+                this.$refs.detail.validate((valid) => {
+                    if (!valid) return;
+                    this.promiseConfirm('确认要创建参数配置么？').then(() => {
+                        this.detail.loading = true;
+                        let params = _.cloneDeep(this.detail.data);
+                        params.value = this.buildValue(params);
+                        axios.post('http://localhost:9093/param-configs', params)
+                            .then(t => {
+                                this.detail.model = false;
+                                this.$refs.pageTable.query(true);
+                            })
+                            .finally(t => this.detail.loading = false);
+                    });
+                });
+            },
+            openModify(row) {
+                this.detail.model = true;
+                this.detail.title = '修改群发短信模板';
+                this.detail.data = _.cloneDeep(row);
+                this.detail.readonly = {code: true, name: false, value: false, remark: false, creatorId: true, createdTime: true};
+                this.detail.style = {code: 'readonly', name: null, value: null, remark: null, creatorId: 'readonly', createdTime: 'readonly'};
+                this.$refs.detail.resetFields();
+                this.save = this.modify;
+            },
+            modify() {
+                this.$refs.detail.validate((valid) => {
+                    if (!valid) return;
+                    this.promiseConfirm('确认要修改么？').then(() => {
+                        this.detail.loading = true;
+                        let params = _.cloneDeep(this.detail.data);
+                        params.value = this.buildValue(params);
+                        axios.put('http://localhost:9093/param-configs', params)
+                            .then(t => {
+                                this.detail.model = false;
+                                this.$refs.pageTable.query(true);
+                            })
+                            .finally(t => this.detail.loading = false);
+
+                    });
+                });
+            },
+            buildValue(params) {
+                return JSON.stringify({
+                    dates: params.dates.split(','),
+                    mobiles: params.mobiles.split(','),
+                    content: params.content,
+                    enabled: params.enabled
+                });
+            }
+        },
+        components: {
+            PageTable: PeaceIview.PageTable,
+        },
+        mixins: [PeaceIview.PromiseConfirm]
+    });
+</script>
+</body>
+</html>

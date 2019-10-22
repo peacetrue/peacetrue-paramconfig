@@ -1,4 +1,4 @@
-= 模型类库模板
+= 参数配置
 xiayx <xiayouxue@hotmail.com>
 v1.0, 2019-08-01: SNAPSHOT
 :doctype: docbook
@@ -10,4 +10,4 @@ v1.0, 2019-08-01: SNAPSHOT
 :testsourcedir: src/test/java
 :source-highlighter: highlightjs
 
-查看 http://peacetrue.github.io/public/peacetrue-template-model-library/index.html[详情^]
+查看 http://peacetrue.github.io/public/peacetrue-paramconfig/index.html[详情^]
