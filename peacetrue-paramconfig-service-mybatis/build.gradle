@@ -30,6 +30,7 @@ dependencies {
 
     testImplementation 'junit:junit'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'org.springframework.data:spring-data-commons'
     testCompile 'org.mybatis.spring.boot:mybatis-spring-boot-starter'
     testCompile 'com.github.pagehelper:pagehelper-spring-boot-starter'
     testCompile 'com.h2database:h2'

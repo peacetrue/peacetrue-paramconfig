@@ -1,7 +1,7 @@
 let {Card, Form, FormItem, Input, Icon, Button, InputNumber, DatePicker} = require('iview/dist/iview');
-let PageTable = require('peacetrue-iview/dist/components/page-table');
 let Axios = require('axios');
 let Lodash = require('lodash');
+let PageTable = require('peacetrue-iview/dist/components/page-table');
 let PromiseConfirm = require('peacetrue-iview/dist/mixins/promise-confirm');
 let {Rules, Generator, setFields} = require('peacetrue-async-validator');
 
@@ -101,7 +101,7 @@ module.exports = {
                 readonly: {},
                 style: {},
                 rules: Generator.generate({
-                    code: [{required: true}, {max: 31}, Rules.use('unique', {url: this.uniqueUrl})],
+                    code: [{required: true}, {max: 31}, /*Rules.use('unique', {url: this.uniqueUrl})*/],
                     name: [{required: true}, {max: 255}],
                     value: [{required: true}, {max: 255}],
                     remark: [{max: 255}],
@@ -132,7 +132,7 @@ module.exports = {
             this.detail.model = true;
             this.detail.title = '查看参数配置';
             this.detail.data = row;
-            this.detail.rules.code[2].unique.original = row.code;
+            // this.detail.rules.code[2].unique.original = row.code;
             this.detail.readonly = {code: true, name: true, value: true, remark: true, creatorId: true, createdTime: true};
             this.detail.style = {code: 'readonly', name: 'readonly', value: 'readonly', remark: 'readonly', creatorId: 'readonly', createdTime: 'readonly'};
             this.save = null;
@@ -143,7 +143,7 @@ module.exports = {
             this.detail.data = {};
             this.detail.readonly = false;
             this.detail.style = null;
-            this.detail.rules.code[2].unique.original = null;
+            // this.detail.rules.code[2].unique.original = null;
             this.detail.readonly = {code: false, name: false, value: false, remark: false, creatorId: true, createdTime: true};
             this.detail.style = {code: null, name: null, value: null, remark: null, creatorId: 'hidden', createdTime: 'hidden'};
             this.$refs.form.resetFields();
@@ -170,7 +170,7 @@ module.exports = {
             this.detail.data = Lodash.merge({}, row);
             this.detail.readonly = {code: true, name: false, value: false, remark: false, creatorId: true, createdTime: true};
             this.detail.style = {code: 'readonly', name: null, value: null, remark: null, creatorId: 'readonly', createdTime: 'readonly'};
-            this.detail.rules.code[2].unique.original = row.code;
+            // this.detail.rules.code[2].unique.original = row.code;
             this.$refs.form.resetFields();
             this.save = this.modify;
         },

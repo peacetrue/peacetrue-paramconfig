@@ -6,7 +6,7 @@ let options = args2options(process.argv, '-pt:');
 //生成一个源文件、一个压缩文件和一个source map 文件
 
 let config = {
-    mode: 'development',
+    mode: 'production',//development
     entry: {
         'ParamConfigList': './src/param-config-list.js',
     },
@@ -23,7 +23,7 @@ let config = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename(chunkData) {
-            let name = chunkData.chunk.name.replace(/([A-Z])/g, (value) => '_' + value.toLowerCase()).substr(1);
+            let name = chunkData.chunk.name.replace(/([A-Z])/g, (value) => '-' + value.toLowerCase()).substr(1);
             return `${name}.${options.mode === 'production' ? 'min.' : ''}js`;
         },
         library: '[name]',
@@ -32,13 +32,26 @@ let config = {
         globalObject: 'this',
     },
     externals: {
+        'vue': 'vue',
         'iview/dist/iview': 'iview',
         'axios': 'axios',
-        'peacetrue-iview/src/components/page-table': {
+        'lodash': {
+            root: '_',
+            commonjs: 'lodash',
+            commonjs2: 'lodash',
+            amd: 'lodash',
+        },
+        'peacetrue-iview/dist/components/page-table': {
             root: ['PeaceIview', 'PageTable'],
             commonjs: 'peacetrue-iview/src/components/page-table',
             commonjs2: 'peacetrue-iview/src/components/page-table',
             amd: 'peacetrue-iview/src/components/page-table'
+        },
+        'peacetrue-async-validator': {
+            root: ['Peace', 'AsyncValidator'],
+            commonjs: 'peacetrue-async-validator',
+            commonjs2: 'peacetrue-async-validator',
+            amd: 'peacetrue-async-validator'
         },
     }
 };
@@ -59,7 +72,7 @@ if (options.plugins && options.plugins.indexOf('html') > -1) {
     config.plugins.push(new HtmlWebpackPlugin({
             title: 'Test',
             inject: 'head',
-            template: 'test/param-config-list-change.ejs'
+            template: 'test/param-config-list.ejs'
         })
     );
 }

@@ -43,8 +43,8 @@
 [source%nowrap,maven]
 ----
 <dependency>
-  <groupId>com.github.peacetrue.template</groupId>
-  <artifactId>peacetrue-paramconfig-ui</artifactId>
-  <version>1.0-SNAPSHOT</version>
+    <groupId>org.webjars.npm</groupId>
+    <artifactId>peacetrue-paramconfig-ui</artifactId>
+    <version>1.0.0</version>
 </dependency>
 ----
